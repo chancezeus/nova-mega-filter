@@ -23,15 +23,11 @@ trait HasMegaFilterTrait
      */
     public function resolveActions(NovaRequest $request)
     {
-
         if ($this->shouldApplyMegaFilter($request) && $card = $this->getMegaFilterCard($request)) {
-
             return parent::resolveActions($request)->merge($card->actions());
-
         }
 
         return parent::resolveActions($request);
-
     }
 
     /**
@@ -46,16 +42,14 @@ trait HasMegaFilterTrait
         if ($this->shouldApplyMegaFilter($request) && $card = $this->getMegaFilterCard($request)) {
             $filterColumns = $this->getFilterColumns();
 
-            if ($filterColumns) {
-                session(['mega-filter-columns' => $filterColumns]);
+            if ($filterColumns && $request->hasSession()) {
+                $request->session()->put('mega-filter-columns-' . sha1($request->resource()), $filterColumns);
             }
 
             return parent::resolveFilters($request)->merge($card->filters());
-
         }
 
         return parent::resolveFilters($request);
-
     }
 
     public function availableFields(NovaRequest $request)
@@ -65,57 +59,42 @@ trait HasMegaFilterTrait
         $card = $this->getMegaFilterCard($request);
 
         if ($this->shouldApplyMegaFilter($request) === false || blank($card)) {
-
             return $fields;
-
         }
 
         $fieldsToShow = $this->getFilterState($request, $card);
 
         return $fields->filter(static function ($field) use ($fieldsToShow) {
-
             if ($field instanceof Field) {
-
                 /**
                  * Keep computed fields untouched
                  */
                 if ($field->computed()) {
-
                     return true;
-
                 }
 
                 return $fieldsToShow->contains($field->attribute);
-
             }
 
             return true;
-
         });
     }
 
     private function shouldApplyMegaFilter(NovaRequest $request): bool
     {
-
         $controller = $request->route()->controller;
 
         if ($controller instanceof ActionController && $request->method() === 'POST') {
-
             return true;
-
         }
 
-        if ($request->viaRelationship() ||
-            $controller instanceof ResourceShowController) {
-
+        if ($request->viaRelationship() || $controller instanceof ResourceShowController) {
             return false;
-
         }
 
-        return $controller instanceof FilterController
-            || $controller instanceof ResourceIndexController
-            || $controller instanceof ResourceCountController;
-
+        return $controller instanceof FilterController ||
+            $controller instanceof ResourceIndexController ||
+            $controller instanceof ResourceCountController;
     }
 
     private function getMegaFilterCard(NovaRequest $request): ?MegaFilter
@@ -127,36 +106,29 @@ trait HasMegaFilterTrait
     {
         $value = $this->getFilterColumns();
 
-        if (! $value) {
-            $value = session('mega-filter-columns');
+        if (!$value && $request->hasSession()) {
+            $value = $request->session()->get('mega-filter-columns-' . sha1($request->resource()));
         }
 
         $attributes = $card->columns()->filter(static function (Column $column) use ($value) {
-
             if ($column->permanent) {
-
                 return true;
-
             }
 
-            if (is_array($value) && is_bool($value = $value[ $column->attribute ])) {
-
+            if (is_array($value) && array_key_exists($column->attribute, $value) && is_bool($value = $value[$column->attribute])) {
                 return $value;
-
             }
 
             return $column->checked;
-
         });
 
         return $attributes->pluck('attribute')->values();
-
     }
 
     public function getFilterColumns()
     {
         $filterDecoder = (new FilterDecoder(request('filters')))->decodeFromBase64String();
-        $columns = collect($filterDecoder)->first(fn ($filter) => $filter[ 'class' ] === MegaFilterColumns::class);
+        $columns = collect($filterDecoder)->first(fn($filter) => $filter['class'] === MegaFilterColumns::class);
 
         return optional($columns)['value'];
     }
