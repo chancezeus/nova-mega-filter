@@ -6,17 +6,7 @@
 
             <h4>{{ title }}</h4>
 
-            <slot name="filters">
-
-                <button v-if="resetLabel"
-                        class="text-primary dim font-bold no-underline cursor-pointer select-none"
-                        @click="$emit('reset')">
-
-                    {{ resetLabel }}
-
-                </button>
-
-            </slot>
+            <slot name="filters"></slot>
 
         </div>
 
@@ -37,10 +27,6 @@
             title: {
                 type: String,
                 required: true
-            },
-            resetLabel: {
-                type: String,
-                default: null
             }
         }
     }

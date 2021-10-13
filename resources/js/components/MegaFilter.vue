@@ -33,9 +33,7 @@
         <CollapseTransition class="mega-filter__columns" v-if="hasColumns">
 
             <Section v-if="sections.columns"
-                     :title="settings.columnsSectionTitle"
-                     :reset-label="settings.columnsResetLinkTitle"
-                     @reset="resetColumns">
+                     :title="settings.columnsSectionTitle">
 
                 <div class="pb-2" v-for="column of columns" :class="[ card.settings.columnsWidth ]">
 
@@ -54,6 +52,14 @@
 
                 </div>
 
+                <div slot="filters">
+                    <button class="text-primary dim font-bold no-underline cursor-pointer select-none"
+                            @click.prevent="resetColumns">
+
+                        {{ settings.columnsResetLinkTitle }}
+
+                    </button>
+                </div>
             </Section>
 
         </CollapseTransition>
@@ -63,9 +69,7 @@
             <CollapseTransition v-if="hasFilters && this.sections.filters">
 
                 <Section v-if="sections.filters"
-                         :title="settings.filtersSectionTitle"
-                         :reset-label="settings.filtersResetLinkTitle"
-                         @reset="clearSelectedFilters">
+                         :title="settings.filtersSectionTitle">
 
                     <FadeTransition tag="card" group :duration="100"
                                     class="filters w-full border border-50 bg-40 shadow-none p-4 flex flex-wrap justify-between">
@@ -81,6 +85,15 @@
                                    @change="filterChanged"/>
 
                     </FadeTransition>
+
+                    <div slot="filters">
+                        <button class="text-primary dim font-bold no-underline cursor-pointer select-none"
+                                @click.prevent="clearSelectedFilters">
+
+                            {{ settings.filtersResetLinkTitle }}
+
+                        </button>
+                    </div>
 
                 </Section>
 
