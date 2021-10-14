@@ -292,7 +292,13 @@
 
                     if (attributes[ attribute ]) {
 
-                        attributesWithLabels[ attribute ] = this.columns.find(column => column.attribute === attribute).label
+                        const item = this.card.columns.find(column => column.attribute === attribute);
+
+                        if (item) {
+
+                            attributesWithLabels[attribute] = item.label
+
+                        }
 
                     }
 
